@@ -41,6 +41,8 @@ button[type="submit"]:hover {
 }
 
 .tex-content-display {
+    max-width: 60%;
+    margin: auto;
     background-color: white;
     padding: 20px;
     border: 1px solid #ddd;
