@@ -84,9 +84,8 @@ def get_citation_detail(citation_key):
 
 
 
-
 def _fetch_citation_details(citation_key, bib_database):
-    """Retrieves citation details from bib_database for a given key and fetches citation count using DOI."""
+    """Retrieves citation details from bib_database for a given key and fetches citation count and abstract summary using DOI if selected."""
     print(f"_fetch_citation_details called for key: {citation_key}") # Debug print
     if bib_database and bib_database.entries:
         print(f"bib_database has entries. Searching for key: {citation_key}") # Debug print
@@ -99,10 +98,12 @@ def _fetch_citation_details(citation_key, bib_database):
                 author = entry.get('author', 'N/A')
                 journal = entry.get('journal', 'N/A')
                 citation_count = "N/A"
+                abstract_summary = "N/A"
                 
-                # Fetch citation count if DOI is available
-                if doi and doi != 'N/A':
+                # Fetch citation count only if verification is enabled and DOI is available
+                if doi != 'N/A':
                     citation_count = _fetch_citation_count(doi)
+                    #abstract_summary = _fetch_abstract_summary(doi)
                 
                 details = {
                     "doi": doi,
@@ -110,7 +111,8 @@ def _fetch_citation_details(citation_key, bib_database):
                     "year": year,
                     "author": author,
                     "journal": journal,
-                    "citation_count": citation_count
+                    "citation_count": citation_count,
+                    #"abstract_summary": abstract_summary
                 }
                 print(f"Returning details: {details}") # Debug print
                 return details
@@ -126,12 +128,42 @@ def _fetch_citation_count(doi):
         response = requests.get(url, timeout=5)
         if response.status_code == 200:
             data = response.json()
-            #print(data.get('message', {}).get('is-referenced-by-count', 'N/A'))
             return data.get('message', {}).get('is-referenced-by-count', 'N/A')
     except requests.RequestException as e:
         print(f"Error fetching citation count: {e}")
     return "N/A"
 
+def _fetch_abstract_summary(doi):
+    """Fetches the research abstract and summarizes it using LLM API."""
+    try:
+        url = f"https://api.semanticscholar.org/v1/paper/{doi}"
+        response = requests.get(url, timeout=5)
+        if response.status_code == 200:
+            data = response.json()
+            abstract = data.get('abstract', 'N/A')
+            if abstract != 'N/A':
+                return _summarize_text(abstract)
+    except requests.RequestException as e:
+        print(f"Error fetching abstract: {e}")
+    return "N/A"
+
+def _summarize_text(text):
+    """Summarizes the given text using an LLM API."""
+    try:
+        llm_api_url = "https://api.openai.com/v1/completions"
+        headers = {"Authorization": "Bearer YOUR_OPENAI_API_KEY", "Content-Type": "application/json"}
+        payload = {
+            "model": "gpt-4",
+            "prompt": f"Summarize the following research abstract:\n{text}",
+            "max_tokens": 100
+        }
+        response = requests.post(llm_api_url, json=payload, headers=headers, timeout=10)
+        if response.status_code == 200:
+            data = response.json()
+            return data.get('choices', [{}])[0].get('text', 'N/A').strip()
+    except requests.RequestException as e:
+        print(f"Error summarizing text: {e}")
+    return "N/A"
 
 
 

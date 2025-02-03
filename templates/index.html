@@ -5,25 +5,23 @@
     <title>LaTeX Citation Verifier</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-        .CodeMirror {
-            height: auto;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-family: 'Fira Code', monospace;
-            font-size: 14px;
-        }
-    </style>
+    
 </head>
 <body>
     <h1>LaTeX Citation Verifier</h1>
 
     <form method="POST" enctype="multipart/form-data">
-        <input type="file" name="bib_file" accept=".bib" required>
-        <input type="file" name="tex_file" accept=".tex" required>
-        <button type="submit">Upload and Verify</button>
+        <div class="mb-3">
+            <label for="bib-file" class="form-label">Upload .bib File</label>
+            <input type="file" class="form-control" name="bib_file" accept=".bib" required>
+        </div>
+        <div class="mb-3">
+            <label for="tex-file" class="form-label">Upload .tex File</label>
+            <input type="file" class="form-control" name="tex_file" accept=".tex" required>
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Upload and Verify</button>
     </form>
-
+    
     {% if error_message %}
         <p class="error">{{ error_message }}</p>
     {% endif %}
@@ -74,21 +72,23 @@
                                     detailsHTML += `<li><strong>DOI:</strong> ${data.citation_info.doi}</li>`;
                                     detailsHTML += `<li><strong>URL:</strong> <a href="https://doi.org/${data.citation_info.doi}" target="_blank">https://doi.org/${data.citation_info.doi}</a></li>`;
                                 }
+                                if (data.citation_info.title) {
+                                    detailsHTML += `<li><strong>Title:</strong> ${data.citation_info.title}</li>`;
+                                }
 
                                 if (data.citation_info.citation_count) {
                                     detailsHTML += `<li><strong>Citations:</strong> ${data.citation_info.citation_count}</li>`;
                                 }
-                       
 
-                                if (data.citation_info.title) {
-                                    detailsHTML += `<li><strong>Title:</strong> ${data.citation_info.title}</li>`;
-                                }
-                                if (data.citation_info.author) {
-                                    detailsHTML += `<li><strong>Author(s):</strong> ${data.citation_info.author}</li>`;
-                                }
                                 if (data.citation_info.year) {
                                     detailsHTML += `<li><strong>Year:</strong> ${data.citation_info.year}</li>`;
                                 }
+
+
+                                if (data.citation_info.author) {
+                                    detailsHTML += `<li><strong>Author(s):</strong> ${data.citation_info.author}</li>`;
+                                }
+
                                 if (data.citation_info.journal) {
                                     detailsHTML += `<li><strong>Journal:</strong> ${data.citation_info.journal}</li>`;
                                 }
