@@ -1,10 +1,10 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const citationLinks = document.querySelectorAll('.citation-link');
     const citationInfoArea = document.getElementById('citation-info-area');
     const citationDetailsDiv = document.getElementById('citation-details');
 
     citationLinks.forEach(link => {
-        link.addEventListener('click', function(event) {
+        link.addEventListener('click', function (event) {
             event.preventDefault(); // Prevent default link navigation
 
             const citationKey = this.dataset.citationKey;
@@ -17,6 +17,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 .then(data => {
                     if (data.citation_info) {
                         let detailsHTML = "<ul>"; // Start unordered list
+
+                        if (data.citation_info.doi) {
+                            detailsHTML += `<li><strong>DOI:</strong> ${data.citation_info.doi}</li>`;
+                        }
+
                         if (data.citation_info.title) {
                             detailsHTML += `<li><strong>Title:</strong> ${data.citation_info.title}</li>`;
                         }
@@ -48,4 +53,5 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
         });
     });
+
 });

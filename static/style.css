@@ -46,9 +46,10 @@ button[type="submit"]:hover {
     border: 1px solid #ddd;
     border-radius: 8px;
     margin-bottom: 20px;
-    font-family: 'Fira Code', monospace;
+    font-family: monaco, 'Fira Code', monospace;
     white-space: pre-wrap; /* Preserve formatting */
     word-wrap: break-word;
+    color: black;
 }
 
 .citation-link {
@@ -58,7 +59,7 @@ button[type="submit"]:hover {
 }
 
 .citation-link:hover {
-    color: darkblue;
+    color: rgb(13, 90, 6);
 }
 
 .citation-key-not-found {
@@ -131,3 +132,43 @@ button[type="submit"]:hover {
     font-weight: bold;
 }
 
+body {
+    font-family: 'Arial', sans-serif;
+}
+
+.container {
+    max-width: 800px;
+}
+
+.card {
+    background: white;
+    border-radius: 10px;
+    border: none;
+}
+
+.btn-primary {
+    background-color: #007bff;
+    border: none;
+    transition: background 0.3s;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+}
+
+#output-container {
+    border: 1px solid #ddd;
+    padding: 15px;
+    margin-top: 20px;
+}
+
+.citation-link {
+    color: #007bff;
+    text-decoration: none;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.citation-link:hover {
+    text-decoration: underline;
+}

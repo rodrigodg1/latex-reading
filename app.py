@@ -90,11 +90,13 @@ def _fetch_citation_details(citation_key, bib_database):
         for entry in bib_database.entries:
             if entry['ID'] == citation_key:
                 print(f"Found matching entry for key: {citation_key}. Entry ID: {entry['ID']}") # Debug print
+                doi = entry.get('doi', 'N/A')
+                url = entry.get('url', 'N/A')
                 title = entry.get('title', 'N/A')
                 year = entry.get('year', 'N/A')
                 author = entry.get('author', 'N/A')
                 journal = entry.get('journal', 'N/A')
-                details = {"title": title, "year": year, "author": author, "journal": journal}
+                details = {"doi": doi, "url":url, "title": title, "year": year, "author": author, "journal": journal}
                 print(f"Returning details: {details}") # Debug print
                 return details
         print(f"No matching entry found for key: {citation_key} in bib_database entries.") # Debug print
@@ -102,5 +104,8 @@ def _fetch_citation_details(citation_key, bib_database):
         print("bib_database is None or has no entries.") # Debug print
     return None
 
+
+
+
 if __name__ == '__main__':
-    app.run(debug=True, port=8080)
+    app.run(debug=True, host="0.0.0.0", port=8080)

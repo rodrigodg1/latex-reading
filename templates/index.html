@@ -45,15 +45,9 @@
     </div>
 
 
-
-
-
     <footer>
         <p>© 2024 My LaTeX Citation Verifier</p>
     </footer>
-
-
-
 
 
     <script>
@@ -73,8 +67,19 @@
                     fetch(citationDetailURL) // Fetch citation details from Flask server
                         .then(response => response.json())
                         .then(data => {
+
+                            
                             if (data.citation_info) {
                                 let detailsHTML = "<ul>"; // Start unordered list
+
+                                if (data.citation_info.doi) {
+                                    detailsHTML += `<li><strong>DOI:</strong> ${data.citation_info.doi}</li>`;
+                                }
+
+                                if (data.citation_info.url) {
+                                    detailsHTML += `<li><strong>URL:</strong> <a href="${data.citation_info.url}" target="_blank">${data.citation_info.url}</a></li>`;
+                                }
+
                                 if (data.citation_info.title) {
                                     detailsHTML += `<li><strong>Title:</strong> ${data.citation_info.title}</li>`;
                                 }
