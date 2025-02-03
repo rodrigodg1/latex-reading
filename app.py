@@ -2,6 +2,9 @@ from flask import Flask, render_template, request, jsonify
 import bibtexparser
 import re
 import requests
+import subprocess
+import ollama
+import os
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'
@@ -106,6 +109,8 @@ def _fetch_citation_details(citation_key, bib_database):
                 if  doi != 'N/A':
                     citation_count = _fetch_citation_count(doi)
                     abstract_summary = _fetch_abstract_summary(doi)
+                    #abstract_summary_llm = _summarize_text_llm(abstract_summary)
+                    
                 
                 details = {
                     "doi": doi,
@@ -114,7 +119,8 @@ def _fetch_citation_details(citation_key, bib_database):
                     "author": author,
                     "journal": journal,
                     "citation_count": citation_count,
-                    "abstract_summary": abstract_summary
+                    "abstract_summary": abstract_summary,
+                   # "abstract_summary_llm": abstract_summary_llm
                 }
                 print(f"Returning details: {details}") # Debug print
                 return details
@@ -150,22 +156,26 @@ def _fetch_abstract_summary(doi):
         print(f"Error fetching abstract: {e}")
     return "N/A"
 
-# def _summarize_text(text):
-#     """Summarizes the given text using an LLM API."""
+
+
+# def _summarize_text_llm(text):
+#     """Summarizes the given text using a local Ollama model inside Docker."""
 #     try:
-#         llm_api_url = "https://api.openai.com/v1/completions"
-#         headers = {"Authorization": "Bearer YOUR_OPENAI_API_KEY", "Content-Type": "application/json"}
-#         payload = {
-#             "model": "gpt-4",
-#             "prompt": f"Summarize the following research abstract:\n{text}",
-#             "max_tokens": 100
-#         }
-#         response = requests.post(llm_api_url, json=payload, headers=headers, timeout=10)
-#         if response.status_code == 200:
-#             data = response.json()
-#             return data.get('choices', [{}])[0].get('text', 'N/A').strip()
-#     except requests.RequestException as e:
-#         print(f"Error summarizing text: {e}")
+#         ollama_host = os.getenv("OLLAMA_HOST", "http://ollama:11434")  # Connect to Ollama container
+
+#         # Check if the model is available before running
+#         available_models = ollama.list()
+#         if not any(model["name"] == "deepseek-r1:14b" for model in available_models["models"]):
+#             print("Error: Model 'deepseek-r1:14b' is not available. Make sure it is pulled.")
+#             return "N/A"
+
+#         response = ollama.chat(
+#             model="deepseek-r1:14b",
+#             messages=[{"role": "user", "content": f"Summarize the following research abstract:\n{text}"}]
+#         )
+#         return response["message"].get("content", "N/A").strip()
+#     except Exception as e:
+#         print(f"Error summarizing text with Ollama (deepseek-r1:14b): {e}")
 #     return "N/A"
 
 def remove_tex_comments(tex_str):
@@ -174,45 +184,62 @@ def remove_tex_comments(tex_str):
 
 
 
+
 def process_tex_content(tex_str, bib_database):
-    """Processes LaTeX content, removes comments, finds citations, and creates clickable links."""
+    """Processes LaTeX content, removes comments, finds citations, and creates clickable links with different colors for citation commands."""
     tex_str = remove_tex_comments(tex_str)  # Remove comments
-    citation_patterns = [
-        r"\\cite\{([^}]+)\}",
-        r"\\citep\{([^}]+)\}",
-        r"\\citet\{([^}]+)\}",
-        r"\\citeauthor\{([^}]+)\}",
-        r"\\citeyear\{([^}]+)\}",
-        r"\\citealp\{([^}]+)\}"
-    ]
+    citation_styles = {
+        r"(\\cite)\{([^}]+)\}": "color: blue;",
+        r"(\\citep)\{([^}]+)\}": "color: blue;",
+        r"(\\citet)\{([^}]+)\}": "color: blue;",
+        r"(\\citeauthor)\{([^}]+)\}": "color: blue;",
+        r"(\\citeyear)\{([^}]+)\}": "color: blue;",
+        r"(\\citealp)\{([^}]+)\}": "color: blue;"
+    }
     
     last_pos = 0
     html_parts = []
     matches = []
     
-    for pattern in citation_patterns:
-        matches.extend(re.finditer(pattern, tex_str))
+    for pattern in citation_styles.keys():
+        for m in re.finditer(pattern, tex_str):
+            matches.append((m, pattern))
     
-    matches.sort(key=lambda m: m.start())  # Ensure order of matches
+    matches.sort(key=lambda x: x[0].start())  # Ensure order of matches
     
-    for match in matches:
-        citation_keys_str = match.group(1)
+    for match, pattern in matches:
+        citation_command = match.group(1)  # Extract the citation command (e.g., \citep)
+        citation_keys_str = match.group(2)
         citation_keys = [key.strip() for key in citation_keys_str.split(',')]  # Handle multiple keys
+        citation_style = citation_styles[pattern]
     
         # Add text before the citation
         html_parts.append(tex_str[last_pos:match.start()])
     
         citation_links_html = []
         for key in citation_keys:
-            citation_links_html.append(f'<a href="#" class="citation-link" data-citation-key="{key}" style="color: blue; text-decoration: underline;">{key}</a>')
+            citation_links_html.append(f'<a href="#" class="citation-link" data-citation-key="{key}" style="{citation_style} text-decoration: underline;">{key}</a>')
     
-        html_parts.append(f'{match.group(0).split("{")[0]}{{{" ".join(citation_links_html)}}}')  # Reconstruct with links
+        html_parts.append(f'<span style="{citation_style}">{citation_command}</span>' + f'{{{" ".join(citation_links_html)}}}')  # Reconstruct with styled citation command
         last_pos = match.end()
     
     # Add remaining text after last citation
     html_parts.append(tex_str[last_pos:])
     
     return "".join(html_parts)
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
