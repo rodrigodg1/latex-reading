@@ -105,7 +105,7 @@ def _fetch_citation_details(citation_key, bib_database):
                 # Fetch citation count only if verification is enabled and DOI is available
                 if  doi != 'N/A':
                     citation_count = _fetch_citation_count(doi)
-                    #abstract_summary = _fetch_abstract_summary(doi)
+                    abstract_summary = _fetch_abstract_summary(doi)
                 
                 details = {
                     "doi": doi,
@@ -114,7 +114,7 @@ def _fetch_citation_details(citation_key, bib_database):
                     "author": author,
                     "journal": journal,
                     "citation_count": citation_count,
-                    #"abstract_summary": abstract_summary
+                    "abstract_summary": abstract_summary
                 }
                 print(f"Returning details: {details}") # Debug print
                 return details
@@ -144,28 +144,29 @@ def _fetch_abstract_summary(doi):
             data = response.json()
             abstract = data.get('abstract', 'N/A')
             if abstract != 'N/A':
-                return _summarize_text(abstract)
+                #return _summarize_text(abstract)
+                return abstract
     except requests.RequestException as e:
         print(f"Error fetching abstract: {e}")
     return "N/A"
 
-def _summarize_text(text):
-    """Summarizes the given text using an LLM API."""
-    try:
-        llm_api_url = "https://api.openai.com/v1/completions"
-        headers = {"Authorization": "Bearer YOUR_OPENAI_API_KEY", "Content-Type": "application/json"}
-        payload = {
-            "model": "gpt-4",
-            "prompt": f"Summarize the following research abstract:\n{text}",
-            "max_tokens": 100
-        }
-        response = requests.post(llm_api_url, json=payload, headers=headers, timeout=10)
-        if response.status_code == 200:
-            data = response.json()
-            return data.get('choices', [{}])[0].get('text', 'N/A').strip()
-    except requests.RequestException as e:
-        print(f"Error summarizing text: {e}")
-    return "N/A"
+# def _summarize_text(text):
+#     """Summarizes the given text using an LLM API."""
+#     try:
+#         llm_api_url = "https://api.openai.com/v1/completions"
+#         headers = {"Authorization": "Bearer YOUR_OPENAI_API_KEY", "Content-Type": "application/json"}
+#         payload = {
+#             "model": "gpt-4",
+#             "prompt": f"Summarize the following research abstract:\n{text}",
+#             "max_tokens": 100
+#         }
+#         response = requests.post(llm_api_url, json=payload, headers=headers, timeout=10)
+#         if response.status_code == 200:
+#             data = response.json()
+#             return data.get('choices', [{}])[0].get('text', 'N/A').strip()
+#     except requests.RequestException as e:
+#         print(f"Error summarizing text: {e}")
+#     return "N/A"
 
 def remove_tex_comments(tex_str):
     """Removes all LaTeX comments from the .tex file content."""
