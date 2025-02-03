@@ -83,6 +83,8 @@ def get_citation_detail(citation_key):
         return jsonify({'error': 'Citation information not found for key: ' + citation_key}), 404
 
 
+import requests
+import re
 
 def _fetch_citation_details(citation_key, bib_database):
     """Retrieves citation details from bib_database for a given key and fetches citation count and abstract summary using DOI if selected."""
@@ -98,10 +100,10 @@ def _fetch_citation_details(citation_key, bib_database):
                 author = entry.get('author', 'N/A')
                 journal = entry.get('journal', 'N/A')
                 citation_count = "N/A"
-                abstract_summary = "N/A"
+                #abstract_summary = "N/A"
                 
                 # Fetch citation count only if verification is enabled and DOI is available
-                if doi != 'N/A':
+                if  doi != 'N/A':
                     citation_count = _fetch_citation_count(doi)
                     #abstract_summary = _fetch_abstract_summary(doi)
                 
@@ -164,6 +166,53 @@ def _summarize_text(text):
     except requests.RequestException as e:
         print(f"Error summarizing text: {e}")
     return "N/A"
+
+def remove_tex_comments(tex_str):
+    """Removes all LaTeX comments from the .tex file content."""
+    return re.sub(r'%.*', '', tex_str)
+
+
+
+def process_tex_content(tex_str, bib_database):
+    """Processes LaTeX content, removes comments, finds citations, and creates clickable links."""
+    tex_str = remove_tex_comments(tex_str)  # Remove comments
+    citation_patterns = [
+        r"\\cite\{([^}]+)\}",
+        r"\\citep\{([^}]+)\}",
+        r"\\citet\{([^}]+)\}",
+        r"\\citeauthor\{([^}]+)\}",
+        r"\\citeyear\{([^}]+)\}",
+        r"\\citealp\{([^}]+)\}"
+    ]
+    
+    last_pos = 0
+    html_parts = []
+    matches = []
+    
+    for pattern in citation_patterns:
+        matches.extend(re.finditer(pattern, tex_str))
+    
+    matches.sort(key=lambda m: m.start())  # Ensure order of matches
+    
+    for match in matches:
+        citation_keys_str = match.group(1)
+        citation_keys = [key.strip() for key in citation_keys_str.split(',')]  # Handle multiple keys
+    
+        # Add text before the citation
+        html_parts.append(tex_str[last_pos:match.start()])
+    
+        citation_links_html = []
+        for key in citation_keys:
+            citation_links_html.append(f'<a href="#" class="citation-link" data-citation-key="{key}" style="color: blue; text-decoration: underline;">{key}</a>')
+    
+        html_parts.append(f'{match.group(0).split("{")[0]}{{{" ".join(citation_links_html)}}}')  # Reconstruct with links
+        last_pos = match.end()
+    
+    # Add remaining text after last citation
+    html_parts.append(tex_str[last_pos:])
+    
+    return "".join(html_parts)
+
 
 
 
