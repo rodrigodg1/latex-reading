@@ -5,8 +5,6 @@
     <title>LaTeX Citation Verifier</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/codemirror.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/theme/dracula.min.css">
     <style>
         .CodeMirror {
             height: auto;
@@ -74,11 +72,13 @@
 
                                 if (data.citation_info.doi) {
                                     detailsHTML += `<li><strong>DOI:</strong> ${data.citation_info.doi}</li>`;
+                                    detailsHTML += `<li><strong>URL:</strong> <a href="https://doi.org/${data.citation_info.doi}" target="_blank">https://doi.org/${data.citation_info.doi}</a></li>`;
                                 }
 
-                                if (data.citation_info.url) {
-                                    detailsHTML += `<li><strong>URL:</strong> <a href="${data.citation_info.url}" target="_blank">${data.citation_info.url}</a></li>`;
+                                if (data.citation_info.citation_count) {
+                                    detailsHTML += `<li><strong>Citations:</strong> ${data.citation_info.citation_count}</li>`;
                                 }
+                       
 
                                 if (data.citation_info.title) {
                                     detailsHTML += `<li><strong>Title:</strong> ${data.citation_info.title}</li>`;
@@ -92,6 +92,8 @@
                                 if (data.citation_info.journal) {
                                     detailsHTML += `<li><strong>Journal:</strong> ${data.citation_info.journal}</li>`;
                                 }
+
+
                                 detailsHTML += "</ul>"; // Close unordered list
 
                                 citationTooltipContent.innerHTML = detailsHTML;

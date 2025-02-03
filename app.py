@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, jsonify
 import bibtexparser
 import re
+import requests
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'
@@ -82,8 +83,10 @@ def get_citation_detail(citation_key):
         return jsonify({'error': 'Citation information not found for key: ' + citation_key}), 404
 
 
+
+
 def _fetch_citation_details(citation_key, bib_database):
-    """Retrieves citation details from bib_database for a given key."""
+    """Retrieves citation details from bib_database for a given key and fetches citation count using DOI."""
     print(f"_fetch_citation_details called for key: {citation_key}") # Debug print
     if bib_database and bib_database.entries:
         print(f"bib_database has entries. Searching for key: {citation_key}") # Debug print
@@ -91,18 +94,43 @@ def _fetch_citation_details(citation_key, bib_database):
             if entry['ID'] == citation_key:
                 print(f"Found matching entry for key: {citation_key}. Entry ID: {entry['ID']}") # Debug print
                 doi = entry.get('doi', 'N/A')
-                url = entry.get('url', 'N/A')
                 title = entry.get('title', 'N/A')
                 year = entry.get('year', 'N/A')
                 author = entry.get('author', 'N/A')
                 journal = entry.get('journal', 'N/A')
-                details = {"doi": doi, "url":url, "title": title, "year": year, "author": author, "journal": journal}
+                citation_count = "N/A"
+                
+                # Fetch citation count if DOI is available
+                if doi and doi != 'N/A':
+                    citation_count = _fetch_citation_count(doi)
+                
+                details = {
+                    "doi": doi,
+                    "title": title,
+                    "year": year,
+                    "author": author,
+                    "journal": journal,
+                    "citation_count": citation_count
+                }
                 print(f"Returning details: {details}") # Debug print
                 return details
         print(f"No matching entry found for key: {citation_key} in bib_database entries.") # Debug print
     else:
         print("bib_database is None or has no entries.") # Debug print
     return None
+
+def _fetch_citation_count(doi):
+    """Fetches citation count from external API using DOI."""
+    try:
+        url = f"https://api.crossref.org/works/{doi}"
+        response = requests.get(url, timeout=5)
+        if response.status_code == 200:
+            data = response.json()
+            #print(data.get('message', {}).get('is-referenced-by-count', 'N/A'))
+            return data.get('message', {}).get('is-referenced-by-count', 'N/A')
+    except requests.RequestException as e:
+        print(f"Error fetching citation count: {e}")
+    return "N/A"
 
 
 

@@ -1,2 +1,3 @@
 Flask
 bibtexparser
+requests

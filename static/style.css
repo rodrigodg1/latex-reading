@@ -111,12 +111,12 @@ button[type="submit"]:hover {
     padding: 15px;
     border-radius: 8px;
     z-index: 10;
-    pointer-events: none; /* or auto if you want tooltip to be interactive */
+    pointer-events: auto; /* Allows clicking inside the tooltip */
     white-space: pre-line;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
     font-size: 14px;
     line-height: 1.4;
-    max-width: 300px; /* Optional: limit tooltip width */
+    max-width: 500px; /* Optional: limit tooltip width */
 }
 
 .tooltip ul {
@@ -172,3 +172,4 @@ body {
 .citation-link:hover {
     text-decoration: underline;
 }
+

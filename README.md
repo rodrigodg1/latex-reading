@@ -4,22 +4,31 @@ This project packages a simple LaTeX editor with citation hover functionality in
 
 ## Prerequisites
 
-*   Docker installed on your system.
+*   Docker and Docker Compose installed on your system.
 
-## Building the Docker Image
+## Running the Application with Docker Compose
 
-1.  Navigate to the directory containing the `Dockerfile`, `latex_editor.py`, and `requirements.txt` in your terminal.
-2.  Build the Docker image using the following command:
+1. Navigate to the directory containing the `docker-compose.yml` file.
+2. Start the application using Docker Compose:
 
     ```bash
-    docker build -t latex-editor .
+    docker-compose up --build
     ```
 
-    This command will build an image named `latex-editor` in your local Docker repository.
+    This command will build and run the container.
 
-## Running the Docker Container
+3. Access the application in your browser at:
 
-To run the LaTeX editor in a Docker container, use the following command:
+    ```
+    http://localhost:8080
+    ```
+
+## Stopping the Application
+
+To stop the running containers, use:
 
 ```bash
-docker run -it latex-editor
+docker-compose down
+```
+
+This will shut down the application and remove the running containers.
